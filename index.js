@@ -1,7 +1,8 @@
 //state dimensions
-const stateWidth = 30
-const canvasSize = stateWidth * 20
+const stateWidth = 100
+const canvasSize = stateWidth * 5
 const stateSize = stateWidth ** 2
+const initialAliveNum = stateSize / 2
 const initialDeadState = Array.from({length: stateSize}, (_, id) => {
     const cellId = id + 1
 
@@ -42,7 +43,6 @@ const initialDeadState = Array.from({length: stateSize}, (_, id) => {
 )
 
 //render helpers
-// const $canvas = document.getElementById('canvas')
 const $onScreenCanvas = document.getElementById('canvas')
 $onScreenCanvas.width = canvasSize
 $onScreenCanvas.height = canvasSize
@@ -62,15 +62,13 @@ const renderCell = ({id, alive}) => {
   }
 }
 
-const clearCanvas = () => {
-  // ctx.clearRect(0, 0, $canvas.width, $canvas.height)
-  onScreenCtx.clearRect(0, 0, $canvas.width, $canvas.height)
+const clearCanvas = (ctx) => {
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
 }
 
 const renderState = state => {
-  // clearCanvas()
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
-  onScreenCtx.clearRect(0, 0, $canvas.width, $canvas.height)
+  clearCanvas(ctx)
+  clearCanvas(onScreenCtx)
 
   state.forEach(cell => renderCell(cell))
 
@@ -96,7 +94,7 @@ const generateAliveCells = (state, aliveQty) => {
     }
   }
   aliveIds.forEach(aliveId => {
-    newState.filter(cell => cell.id === aliveId)[0].alive = true
+    newState.find(cell => cell.id === aliveId).alive = true
   })
 
   return newState
@@ -104,17 +102,28 @@ const generateAliveCells = (state, aliveQty) => {
 
 
 const updateStateOnce = state => {
-  const getAliveNeighborsNum = ({neighborsIds}) => {
+  const getAliveNeighborsNum = (neighborsIds) => {
+    // let neighborsNum = 0
+    // let i = 0
+    // for (; i < 8; i++) {
+    //   const neighborId = neighborsIds[i]
+    //   const neighbor = state[neighborId - 1]
+    //   neighborsNum += neighbor.alive === true ? 1 : 0
+    // }
+    //
+    // return neighborsNum
+
     return neighborsIds
-      .map(neighborId => {
-        const neighbor = state.filter(cell => cell.id === neighborId)[0]
-        return neighbor.alive === true ? 1 : 0
-      })
-      .reduce((acc, curr) => acc + curr, 0)
+      .reduce((acc, currNeighborId) => {
+        // const neighbor = state.find(cell => cell.id === currNeighborId)
+        const neighbor = state[currNeighborId - 1]
+        const alive = neighbor.alive === true ? 1 : 0
+        return acc + alive
+      }, 0)
   }
 
   return state.map(cell => {
-    const aliveNeighborsNum = getAliveNeighborsNum(cell)
+    const aliveNeighborsNum = getAliveNeighborsNum(cell.neighborsIds)
     let alive = cell.alive
 
     if (aliveNeighborsNum === 3 && !alive) {
@@ -129,24 +138,20 @@ const updateStateOnce = state => {
   })
 }
 
-let state = generateAliveCells(initialDeadState, 150)
-console.log(state)
+let state = generateAliveCells(initialDeadState, initialAliveNum)
 let allDead = false
-let counter = 0
+let counter = 1
 const runGame = () => {
   renderState(state)
-  // console.log(state)
+  // console.log("updated..")
   state = updateStateOnce(state)
-  // console.log(state)
-  allDead = state.filter(cell => cell.alive).length > 0 ? false : true
-  renderCounter(counter++)
+  allDead = !state.find(cell => cell.alive)
+  renderCounter(++counter)
 
   if (allDead) {
-    console.log(allDead)
     console.log('allDead', allDead)
     clearInterval(intervalId)
-    // ctx.clearRect(0, 0, $canvas.width, $canvas.height)
-    clearCanvas()
+    clearCanvas(onScreenCtx)
   }
 }
 
