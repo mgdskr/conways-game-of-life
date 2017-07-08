@@ -1,0 +1,12 @@
+#canvas, #canvas-grid {
+    cursor: pointer;
+    position: absolute;
+}
+
+#canvas-grid {
+    z-index: 1;
+}
+
+#canvas-grid {
+    z-index: 3;
+}

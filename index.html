@@ -6,16 +6,25 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Game of Life</title>
+    <link rel="stylesheet" href="./index.css">
 </head>
 <body>
-<canvas id="canvas"></canvas>
 <div id="counter"></div>
+
 <div class="buttons">
     <button type="button" id="btnStart">Start</button>
     <button type="button" id="btnStop" style="display: none">Stop</button>
     <button type="button" id="btnPause" style="display: none">Pause</button>
+    <button type="button" id="btnKill" style="display: none">Kill All Cells</button>
     <button type="button" id="btnRestart" style="display: none">Restart</button>
+    <button type="button" id="btnZoomIn">+ Zoom In</button>
+    <button type="button" id="btnZoomOut">- Zoom Out</button>
+    <button type="button" id="btnSpeedUp">Speed Up</button>
+    <button type="button" id="btnSpeedDown">Speed Down</button>
+
 </div>
+<canvas id="canvas"></canvas>
+<canvas id="canvas-grid"></canvas>
 
 <script src="index.js"></script>
 </body>
