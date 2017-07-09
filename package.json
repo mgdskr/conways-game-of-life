@@ -1,0 +1,25 @@
+{
+  "name": "life-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mgdskr/conways-game-of-life.git"
+  },
+  "keywords": [],
+  "author": "Oleksandr Maksymenko",
+  "license": "ISC",
+  "dependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-core": "^6.23.1",
+    "babel-preset-env": "^1.1.11"
+  },
+  "bugs": {
+    "url": "https://github.com/mgdskr/conways-game-of-life/issues"
+  },
+  "homepage": "https://github.com/mgdskr/conways-game-of-life#readme"
+}

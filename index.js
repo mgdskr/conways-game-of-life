@@ -259,6 +259,7 @@ const handlerOnStartGame = () => {
   intervalId = setInterval(runGame, timeDelay)
   console.log('started...')
 }
+
 const handlerOnStopGame = () => {
   $btnStop.style.display = "none"
   $btnPause.style.display = "none"
@@ -269,6 +270,7 @@ const handlerOnStopGame = () => {
   killAllCells(initialDeadState)
   console.log('stopped...')
 }
+
 const handlerOnPauseGame = () => {
   if (intervalId) {
     // gameIsRunning = false
@@ -298,9 +300,12 @@ const handlerOnKill = () => {
   killAllCells(state)
 }
 
+
 const handlerOnZoomIn = () => {
   cellWidth++
   canvasSize = stateWidth * cellWidth
+  // clearCanvas(canvasGridCtx)
+  drawGrid(canvasGridCtx)
   // updateCanvasSize(canvasSize)
 
 }
@@ -308,6 +313,8 @@ const handlerOnZoomIn = () => {
 const handlerOnZoomOut = () => {
   cellWidth--
   canvasSize = stateWidth * cellWidth
+  // clearCanvas(canvasGridCtx)
+  drawGrid(canvasGridCtx)
   // updateCanvasSize(canvasSize)
 }
 
