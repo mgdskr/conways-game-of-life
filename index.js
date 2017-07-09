@@ -1,12 +1,17 @@
 //state dimensions
-const stateWidth = 100
+const stateWidth = 300
 let cellWidth = 10
 let canvasSize = stateWidth * cellWidth
 
 const stateSize = stateWidth ** 2
 const initialAliveNum = stateSize / 2
-let timeDelay = 100
-const initialDeadState = Array.from({length: stateSize}, (_, id) => {
+let timeDelay = 0
+
+const initialDeadState = Array.from({length: stateSize}, _ => false)
+
+
+const generateNeighborsTable = stateSize => {
+  return Array.from({length: stateSize}, (_, id) => {
     const cellId = id + 1
 
     const y = Math.ceil(cellId / stateWidth)
@@ -39,11 +44,13 @@ const initialDeadState = Array.from({length: stateSize}, (_, id) => {
       return newX + (newY - 1) * stateWidth
     }
 
-    const neighborsIds = neighborsCoordinates.map(neighborCoos => convertXYToId(neighborCoos))
+    return neighborsCoordinates.map(neighborCoos => convertXYToId(neighborCoos))
 
-    return {id: cellId, alive: false, neighborsIds}
-  }
-)
+  })
+}
+
+const neighborsTable = generateNeighborsTable(stateSize)
+// console.log(neighborsTable[0])
 
 //render helpers
 const $onScreenCanvas = document.getElementById('canvas')
@@ -62,22 +69,19 @@ const $canvasGrid = document.getElementById('canvas-grid')
 $canvasGrid.width = canvasSize
 $canvasGrid.height = canvasSize
 canvasGridCtx = $canvasGrid.getContext('2d')
-// canvasGridCtx.fillStyle = '#0f0'
 
 const drawGrid = (ctx) => {
 
   //cellWidth
   ctx.strokeStyle = '#222'
   let linesNum = stateWidth + 1
-  let i = 0
   let x, y
   ctx.beginPath()
-  for (; i < linesNum; i++) {
+  for (let i = 0; i < linesNum; i++) {
     //vertical lines
     y = i * cellWidth
     ctx.moveTo(0, y)
     ctx.lineTo(canvasSize, y)
-    // ctx.stroke()
 
     //horizontal lines
     x = i * cellWidth
@@ -100,24 +104,11 @@ const clearCanvas = (ctx) => {
   ctx.clearRect(0, 0, canvasSize, canvasSize)
 }
 
-const renderCell = ({id}, ctx) => {
+const renderCell = (id, ctx) => {
   const y = Math.ceil(id / stateWidth)
   const x = id - (y - 1) * stateWidth
   ctx.fillRect((x - 1) * cellWidth, (y - 1) * cellWidth, cellWidth, cellWidth)
 }
-//
-// const renderState = state => {
-//   clearCanvas(ctx)
-//   clearCanvas(onScreenCtx)
-//
-//   state.forEach(cell => {
-//     if (cell.alive) {
-//       renderCell(cell, ctx)
-//     }
-//   })
-//
-//   onScreenCtx.drawImage($canvas, 0, 0)
-// }
 
 //render counter
 const $counter = document.getElementById('counter')
@@ -127,22 +118,20 @@ const renderCounter = counterValue => {
 }
 
 const killAllCells = (state) => {
-  state.forEach(cell => cell.alive = false)
+  state.forEach(cell => false)
 }
 
 const generateAliveCells = (state, aliveQty) => {
   const aliveIds = []
   while (aliveQty) {
-    const aliveId = Math.floor(Math.random() * stateSize + 1)
+    const aliveId = Math.floor(Math.random() * stateSize)
     if (!aliveIds.includes(aliveId)) {
       aliveIds.push(aliveId)
       aliveQty--
     }
   }
-  aliveIds.forEach(aliveId => {
-    state.find(cell => cell.id === aliveId).alive = true
-  })
-  console.log("initial state", state.filter(cell => cell.alive).length)
+  aliveIds.forEach(aliveId => state[aliveId] = true)
+  console.log("initial state", state.filter(cell => cell).length)
   return state
 }
 
@@ -164,7 +153,7 @@ const updateStateOnce = state => {
     for (; i < 8; i++) {
       const neighborId = neighborsIds[i]
       const neighbor = state[neighborId - 1]
-      neighborsNum += neighbor.alive === true ? 1 : 0
+      neighborsNum += neighbor === true ? 1 : 0
     }
 
     return neighborsNum
@@ -179,23 +168,29 @@ const updateStateOnce = state => {
     //   }, 0)
   }
 
-  const newState = state.map(cell => {
-    const aliveNeighborsNum = getAliveNeighborsNum(cell.neighborsIds)
-    let alive = cell.alive
+  const newState = state.map((cell, idx) => {
+    // console.log(idx)
+    // const neighborsIds = neighborsTable[idx]
+    //
+    // if (!neighborsIds) {
+    //   clearInterval(intervalId)
+    //   console.log(cell, idx)
+    // }
+    const aliveNeighborsNum = getAliveNeighborsNum(neighborsTable[idx])
 
-    if (aliveNeighborsNum === 3 && !alive) {
-      alive = true
-    } else if (aliveNeighborsNum < 2 && alive) {
-      alive = false
-    } else if (aliveNeighborsNum > 3 && alive) {
-      alive = false
+    if (aliveNeighborsNum === 3 && !cell) {
+      cell = true
+    } else if (aliveNeighborsNum < 2 && cell) {
+      cell = false
+    } else if (aliveNeighborsNum > 3 && cell) {
+      cell = false
     }
 
-    if (alive) {
-      renderCell(cell, ctx)
+    if (cell) {
+      renderCell(idx, ctx)
     }
 
-    return Object.assign({}, cell, {alive})
+    return cell
   })
 
   onScreenCtx.drawImage($canvas, 0, 0)
@@ -210,20 +205,19 @@ let counter
 let gameIsRunning
 
 const initializeGame = () => {
-  console.log(initialDeadState.filter(cell => cell.alive).length)
   state = generateAliveCells(initialDeadState, initialAliveNum)
   allDead = false
   startTime = Date.now()
   counter = 1
   gameIsRunning = true
   drawGrid(canvasGridCtx)
-  console.log("initialized...")
+  console.log("initialized...", state)
 }
 
 const runGame = () => {
   // renderState(state)
   state = updateStateOnce(state)
-  allDead = !state.find(cell => cell.alive)
+  allDead = !state.find(cell => cell)
 
   if (counter % 10 === 0) {
     const endTime = Date.now()
@@ -372,22 +366,17 @@ const handlerOnToggleCell = (e) => {
   const newY = Math.ceil(y / cellWidth)
   const cellId = newX + (newY - 1) * stateWidth
   console.log(newX, newY, cellId)
-  let clickedCell = state.find(cell => cell.id === cellId)
-  console.log(clickedCell)
-  clickedCell.alive = !clickedCell.alive
-  if (clickedCell.alive) {
+  state[cellId] = !state[cellId]
+  if (state[cellId]) {
     onScreenCtx.fillRect((newX - 1) * cellWidth, (newY - 1) * cellWidth, cellWidth, cellWidth)
     // renderCell(clickedCell, onScreenCtx)
   }
-  else if (!clickedCell.alive) {
+  else if (!state[cellId]) {
     onScreenCtx.fillStyle = '#000'
     onScreenCtx.fillRect((newX - 1) * cellWidth, (newY - 1) * cellWidth, cellWidth, cellWidth)
     onScreenCtx.fillStyle = '#0f0'
   }
-  console.log(clickedCell.alive)
 
 }
 
 document.addEventListener('click', handlerOnToggleCell)
-
-
