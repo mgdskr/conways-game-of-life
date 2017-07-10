@@ -1,5 +1,5 @@
 //state dimensions
-const stateWidth = 300
+const stateWidth = 100
 let cellWidth = 10
 let canvasSize = stateWidth * cellWidth
 
@@ -41,7 +41,7 @@ const generateNeighborsTable = stateSize => {
 
       const [newX, newY] = [x, y].map(coo => checkCoordinates(coo))
 
-      return newX + (newY - 1) * stateWidth
+      return newX + (newY - 1) * stateWidth - 1
     }
 
     return neighborsCoordinates.map(neighborCoos => convertXYToId(neighborCoos))
@@ -50,7 +50,7 @@ const generateNeighborsTable = stateSize => {
 }
 
 const neighborsTable = generateNeighborsTable(stateSize)
-// console.log(neighborsTable[0])
+console.log(neighborsTable[0], neighborsTable.length)
 
 //render helpers
 const $onScreenCanvas = document.getElementById('canvas')
@@ -105,9 +105,10 @@ const clearCanvas = (ctx) => {
 }
 
 const renderCell = (id, ctx) => {
+  id = id + 1
   const y = Math.ceil(id / stateWidth)
   const x = id - (y - 1) * stateWidth
-  ctx.fillRect((x - 1) * cellWidth, (y - 1) * cellWidth, cellWidth, cellWidth)
+  ctx.fillRect((x - 1) * cellWidth, (y - 1 ) * cellWidth, cellWidth, cellWidth)
 }
 
 //render counter
@@ -130,9 +131,10 @@ const generateAliveCells = (state, aliveQty) => {
       aliveQty--
     }
   }
-  aliveIds.forEach(aliveId => state[aliveId] = true)
-  console.log("initial state", state.filter(cell => cell).length)
-  return state
+  const newState = [...state]
+  aliveIds.forEach(aliveId => newState[aliveId] = true)
+  console.log("initial state", state.length, state.filter(cell => cell).length)
+  return newState
 }
 
 
@@ -152,7 +154,7 @@ const updateStateOnce = state => {
     let i = 0
     for (; i < 8; i++) {
       const neighborId = neighborsIds[i]
-      const neighbor = state[neighborId - 1]
+      const neighbor = state[neighborId]
       neighborsNum += neighbor === true ? 1 : 0
     }
 
@@ -205,13 +207,14 @@ let counter
 let gameIsRunning
 
 const initializeGame = () => {
+  console.log(initialDeadState.filter(cell => cell).length)
   state = generateAliveCells(initialDeadState, initialAliveNum)
   allDead = false
   startTime = Date.now()
   counter = 1
   gameIsRunning = true
   drawGrid(canvasGridCtx)
-  console.log("initialized...", state)
+  console.log("initialized...")
 }
 
 const runGame = () => {
@@ -228,17 +231,6 @@ const runGame = () => {
     //10 cycles for x time 10_c/x_time = fps
   }
   renderCounter(++counter)
-
-  // if (!gameIsRunning) {
-  //   console.log('gameIsRunning', gameIsRunning)
-  //   clearInterval(intervalId)
-  // }
-
-  // if (allDead) {
-  //   console.log('allDead', allDead)
-  //   clearInterval(intervalId)
-  //   clearCanvas(onScreenCtx)
-  // }
 }
 
 let intervalId
@@ -261,7 +253,7 @@ const handlerOnStopGame = () => {
   $btnStart.style.display = "inline-block"
   // gameIsRunning = false
   clearInterval(intervalId)
-  killAllCells(initialDeadState)
+  // killAllCells(initialDeadState)
   console.log('stopped...')
 }
 
@@ -282,7 +274,7 @@ const handlerOnPauseGame = () => {
 const handlerOnRestartGame = () => {
   // gameIsRunning = false
   clearInterval(intervalId)
-  killAllCells(initialDeadState)
+  // killAllCells(initialDeadState)
   initializeGame()
   $btnStart.style.display = 'none'
   $btnStop.style.display = 'inline-block'
@@ -291,7 +283,14 @@ const handlerOnRestartGame = () => {
 
 const handlerOnKill = () => {
   console.log("killing")
-  killAllCells(state)
+  // killAllCells(state)
+  state = [...initialDeadState]
+  // clearCanvas(onScreenCtx)
+  ctx.rect(0, 0, canvasSize, canvasSize)
+  ctx.fillStyle = '#000'
+  ctx.fill()
+  ctx.fillStyle = '#0f0'
+  onScreenCtx.drawImage($canvas, 0, 0)
 }
 
 
@@ -364,9 +363,11 @@ const handlerOnToggleCell = (e) => {
   const y = clientY - top
   const newX = Math.ceil(x / cellWidth)
   const newY = Math.ceil(y / cellWidth)
-  const cellId = newX + (newY - 1) * stateWidth
+  const cellId = newX + (newY - 1) * stateWidth - 1 //TODO fix this
   console.log(newX, newY, cellId)
+  console.log(state[cellId])
   state[cellId] = !state[cellId]
+  console.log(state[cellId])
   if (state[cellId]) {
     onScreenCtx.fillRect((newX - 1) * cellWidth, (newY - 1) * cellWidth, cellWidth, cellWidth)
     // renderCell(clickedCell, onScreenCtx)
